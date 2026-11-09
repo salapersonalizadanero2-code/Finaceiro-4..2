@@ -1,0 +1,1799 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Financeiro Edyson">
+    <title>FINANCEIRO EDYSON v4.1</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f5f3ff',
+                            100: '#ede9fe',
+                            500: '#8b5cf6',
+                            600: '#7c3aed',
+                            700: '#6d28d9',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+                body { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; transition: background-color 0.3s, color 0.3s; -webkit-tap-highlight-color: transparent; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        input, select, textarea { font-size: 16px !important; } /* Evita zoom automático no iOS ao focar */
+        @media (max-width: 767px) {
+            body { padding-bottom: 70px; } /* Espaço para a barra inferior no telemóvel */
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col md:flex-row bg-slate-100 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+
+    <!-- SCREEN LOCK MODAL -->
+    <div id="pin-screen" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-800 p-8 rounded-3xl shadow-2xl text-center max-w-sm w-full border border-slate-700">
+            <div class="bg-brand-600 text-white p-4 rounded-2xl w-16 h-16 mx-auto mb-4 flex items-center justify-center text-2xl shadow-lg">
+                <i class="fa-solid fa-lock"></i>
+            </div>
+            <h2 class="text-xl font-bold text-white mb-1">FINANCEIRO EDYSON</h2>
+            <p class="text-xs text-slate-400 mb-6">Digite seu PIN de 4 dígitos para acessar</p>
+            <input type="password" id="pin-input" maxlength="4" placeholder="••••" class="w-full text-center text-3xl tracking-widest font-bold bg-slate-900 border border-slate-700 rounded-xl py-3 text-white focus:outline-none focus:border-brand-500 mb-4">
+            <button onclick="unlockScreen()" class="w-full bg-brand-600 hover:bg-brand-700 text-white py-3 rounded-xl font-semibold shadow-md transition">Entrar no Sistema</button>
+            <p id="pin-error" class="text-xs text-rose-400 font-medium mt-3 hidden">PIN incorreto. Tente novamente.</p>
+        </div>
+    </div>
+
+    <!-- HEADER MOBILE COM MENU HAMBÚRGUER -->
+    <header class="md:hidden bg-slate-900 text-white p-4 border-b border-slate-800 flex items-center justify-between sticky top-0 z-40">
+        <div class="flex items-center space-x-3">
+            <div class="bg-brand-600 p-2 rounded-xl text-white shadow-lg">
+                <i class="fa-solid fa-wallet text-lg"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-base tracking-wide text-brand-100">FINANCEIRO</h1>
+                <p class="text-[10px] text-brand-400 font-medium">EDYSON • v4.1 MOBILE</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-2">
+            <button onclick="toggleDarkMode()" class="p-2 rounded-lg bg-slate-800 text-slate-200 text-sm">
+                <i id="dark-mode-icon-mobile" class="fa-solid fa-moon"></i>
+            </button>
+            <button onclick="toggleMobileSidebar()" class="p-2 rounded-lg bg-brand-600 text-white text-base">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- SIDEBAR (DESKTOP E MENU LATERAL MÓVEL) -->
+    <aside id="main-sidebar" class="fixed md:static inset-y-0 left-0 z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300 w-64 bg-slate-900 dark:bg-slate-900 text-white flex flex-col justify-between shadow-xl border-r border-slate-800">
+        <div>
+            <div class="p-6 border-b border-slate-800 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-brand-600 p-2.5 rounded-xl text-white shadow-lg">
+                        <i class="fa-solid fa-wallet text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-lg tracking-wide text-brand-100">FINANCEIRO</h1>
+                        <p class="text-xs text-brand-400 font-medium">EDYSON • v4.1</p>
+                    </div>
+                </div>
+                <button onclick="toggleMobileSidebar()" class="md:hidden text-slate-400 hover:text-white p-2 text-lg">&times;</button>
+            </div>
+            <nav class="p-4 space-y-1 text-sm font-medium">
+                <button onclick="switchTab('inicio')" id="btn-inicio" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition text-left bg-brand-600 text-white shadow-md">
+                    <i class="fa-solid fa-house w-5"></i><span>Início</span>
+                </button>
+                <button onclick="switchTab('lancamentos')" id="btn-lancamentos" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition text-left text-slate-300 hover:bg-slate-800 hover:text-white">
+                    <i class="fa-solid fa-right-left w-5"></i><span>Lançamentos</span>
+                </button>
+                <button onclick="switchTab('contas')" id="btn-contas" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition text-left text-slate-300 hover:bg-slate-800 hover:text-white">
+                    <i class="fa-solid fa-building-columns w-5"></i><span>Minhas Contas</span>
+                </button>
+                <button onclick="switchTab('dividas')" id="btn-dividas" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition text-left text-slate-300 hover:bg-slate-800 hover:text-white">
+                    <i class="fa-solid fa-file-invoice-dollar w-5"></i><span>Contas e Dívidas</span>
+                </button>
+                <button onclick="switchTab('metas')" id="btn-metas" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition text-left text-slate-300 hover:bg-slate-800 hover:text-white">
+                    <i class="fa-solid fa-bullseye w-5"></i><span>Metas</span>
+                </button>
+                <button onclick="switchTab('simulador')" id="btn-simulador" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition text-left text-slate-300 hover:bg-slate-800 hover:text-white">
+                    <i class="fa-solid fa-motorcycle w-5"></i><span>Simulador R15</span>
+                </button>
+                <button onclick="switchTab('config')" id="btn-config" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition text-left text-slate-300 hover:bg-slate-800 hover:text-white">
+                    <i class="fa-solid fa-gear w-5"></i><span>Configurações</span>
+                </button>
+            </nav>
+        </div>
+        <div class="p-4 border-t border-slate-800 flex flex-col space-y-3">
+            <button onclick="toggleDarkMode()" class="w-full flex items-center justify-center space-x-2 bg-slate-800 hover:bg-slate-700 text-slate-200 py-2.5 rounded-xl text-xs font-semibold transition">
+                <i id="dark-mode-icon" class="fa-solid fa-moon"></i>
+                <span id="dark-mode-text">Modo Escuro</span>
+            </button>
+            <div class="text-xs text-slate-400">
+                <p class="font-semibold text-slate-300">Salário Base:</p>
+                <p>R$ 913,00 (60% / 40%)</p>
+                <p class="mt-1 text-brand-400">Meta R15: Nov/2028</p>
+            </div>
+        </div>
+    </aside>
+    <div id="sidebar-overlay" onclick="toggleMobileSidebar()" class="fixed inset-0 bg-black/60 z-40 hidden md:hidden"></div>
+
+    <!-- BOTTOM NAVIGATION BAR PARA TELEMÓVEL -->
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-800 flex justify-around items-center py-2 px-1 z-30 shadow-2xl">
+        <button onclick="switchTab('inicio')" id="bnav-inicio" class="flex flex-col items-center justify-center text-brand-500 w-full py-1">
+            <i class="fa-solid fa-house text-lg mb-0.5"></i>
+            <span class="text-[10px] font-medium">Início</span>
+        </button>
+        <button onclick="switchTab('lancamentos')" id="bnav-lancamentos" class="flex flex-col items-center justify-center text-slate-400 w-full py-1">
+            <i class="fa-solid fa-right-left text-lg mb-0.5"></i>
+            <span class="text-[10px] font-medium">Lançar</span>
+        </button>
+        <button onclick="switchTab('contas')" id="bnav-contas" class="flex flex-col items-center justify-center text-slate-400 w-full py-1">
+            <i class="fa-solid fa-building-columns text-lg mb-0.5"></i>
+            <span class="text-[10px] font-medium">Contas</span>
+        </button>
+        <button onclick="switchTab('dividas')" id="bnav-dividas" class="flex flex-col items-center justify-center text-slate-400 w-full py-1">
+            <i class="fa-solid fa-file-invoice-dollar text-lg mb-0.5"></i>
+            <span class="text-[10px] font-medium">Dívidas</span>
+        </button>
+        <button onclick="toggleMobileSidebar()" class="flex flex-col items-center justify-center text-slate-400 w-full py-1">
+            <i class="fa-solid fa-ellipsis-vertical text-lg mb-0.5"></i>
+            <span class="text-[10px] font-medium">Mais</span>
+        </button>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 p-4 md:p-8 overflow-y-auto max-h-screen">
+
+        <!-- ALERTA DE SALDO NEGATIVO -->
+        <div id="negative-alert" class="hidden mb-6 bg-amber-50 dark:bg-amber-950/40 border-l-4 border-amber-500 p-4 rounded-xl shadow-sm flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <i class="fa-solid fa-triangle-exclamation text-amber-500 text-xl"></i>
+                <div>
+                    <h4 class="font-bold text-amber-900 dark:text-amber-200">Atenção ao Saldo!</h4>
+                    <p class="text-sm text-amber-700 dark:text-amber-400">Suas despesas ou contas pendentes ultrapassam o dinheiro livre disponível.</p>
+                </div>
+            </div>
+            <button onclick="document.getElementById('negative-alert').classList.add('hidden')" class="text-amber-700 dark:text-amber-400 hover:text-amber-900 font-bold px-2">&times;</button>
+        </div>
+
+        <!-- 1. INÍCIO (DASHBOARD) -->
+        <section id="tab-inicio" class="tab-content active space-y-6">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Visão Geral</h2>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">Resumo financeiro atualizado em tempo real • Ref: 04/11/2026</p>
+                </div>
+                <div class="flex items-center gap-3 w-full md:w-auto">
+                    <!-- Filtro por Mês -->
+                    <div class="flex items-center space-x-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-3 py-2 rounded-xl shadow-sm">
+                        <i class="fa-solid fa-calendar-days text-brand-600 text-xs"></i>
+                        <select id="global-month-filter" onchange="renderAll()" class="bg-transparent text-xs font-semibold focus:outline-none text-slate-700 dark:text-slate-200 cursor-pointer">
+                            <option value="all">Todos os Meses</option>
+                            <option value="2026-11" selected>Novembro / 2026</option>
+                            <option value="2026-12">Dezembro / 2026</option>
+                            <option value="2027-01">Janeiro / 2027</option>
+                        </select>
+                    </div>
+                    <button onclick="switchTab('lancamentos')" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-xl font-medium shadow-md transition flex items-center space-x-2 text-sm whitespace-nowrap">
+                        <i class="fa-solid fa-plus"></i><span>Novo Lançamento</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Cards Resumo Principal -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800">
+                    <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Patrimônio Total</p>
+                    <h3 id="dash-patrimonio" class="text-2xl font-bold text-slate-900 dark:text-white mt-1">R$ 0,00</h3>
+                    <p class="text-xs text-slate-400 mt-1">Soma de todas as contas e reservas</p>
+                </div>
+                <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800">
+                    <p class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Dinheiro Disponível</p>
+                    <h3 id="dash-disponivel" class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">R$ 0,00</h3>
+                    <p class="text-xs text-slate-400 mt-1">Livre para uso imediato</p>
+                </div>
+                <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800">
+                    <p class="text-xs font-semibold text-purple-600 dark:text-purple-400 uppercase tracking-wider">Dinheiro Reservado</p>
+                    <h3 id="dash-reservado" class="text-2xl font-bold text-purple-600 dark:text-purple-400 mt-1">R$ 0,00</h3>
+                    <p class="text-xs text-slate-400 mt-1">Celular e outras finalidades</p>
+                </div>
+                <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800">
+                    <p class="text-xs font-semibold text-amber-600 dark:text-amber-400 uppercase tracking-wider">Aguardando Resgate</p>
+                    <h3 id="dash-resgate" class="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">R$ 0,00</h3>
+                    <p class="text-xs text-slate-400 mt-1">Investimentos a vencer</p>
+                </div>
+            </div>
+
+            <!-- Segunda Linha de Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Receitas do Período</p>
+                        <h4 id="dash-receitas" class="text-xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">R$ 0,00</h4>
+                    </div>
+                    <div class="bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 p-3 rounded-xl"><i class="fa-solid fa-arrow-down text-lg"></i></div>
+                </div>
+                <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Despesas do Período</p>
+                        <h4 id="dash-despesas" class="text-xl font-bold text-rose-600 dark:text-rose-400 mt-1">R$ 0,00</h4>
+                    </div>
+                    <div class="bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 p-3 rounded-xl"><i class="fa-solid fa-arrow-up text-lg"></i></div>
+                </div>
+                <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Saldo Restante do Mês</p>
+                        <h4 id="dash-saldo-mes" class="text-xl font-bold text-slate-900 dark:text-white mt-1">R$ 0,00</h4>
+                    </div>
+                    <div class="bg-brand-50 dark:bg-brand-950/50 text-brand-600 dark:text-brand-400 p-3 rounded-xl"><i class="fa-solid fa-scale-balanced text-lg"></i></div>
+                </div>
+            </div>
+
+            <!-- Progresso R15 & Alertas Rápidos -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Progresso R15 -->
+                <div class="lg:col-span-2 bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+                                <i class="fa-solid fa-motorcycle text-brand-600"></i>
+                                <span>Meta: Yamaha R15 X-Black</span>
+                            </h3>
+                            <span class="text-xs bg-brand-50 dark:bg-brand-950/50 text-brand-700 dark:text-brand-300 font-semibold px-2.5 py-1 rounded-full">Prazo: Nov/2028</span>
+                        </div>
+                        <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">Economia planejada: R$ 300,00/mês | Entrada desejada: R$ 5.000,00</p>
+                        <div class="w-full bg-slate-100 dark:bg-slate-800 h-4 rounded-full overflow-hidden mb-2">
+                            <div id="r15-progress-bar" class="bg-brand-600 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                        <div class="flex justify-between text-xs text-slate-500 dark:text-slate-400 font-medium">
+                            <span id="r15-current">R$ 0,00 guardados</span>
+                            <span id="r15-percent">0% da Entrada (R$ 5.000)</span>
+                        </div>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                        <span class="text-xs text-slate-500 dark:text-slate-400">Acumulado em 24 meses: R$ 7.200,00</span>
+                        <button onclick="switchTab('simulador')" class="text-xs text-brand-600 dark:text-brand-400 font-bold hover:underline">Abrir Simulador &rarr;</button>
+                    </div>
+                </div>
+
+                <!-- Pendências & Dívidas Resumo -->
+                <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col justify-between">
+                    <div>
+                        <h3 class="font-bold text-slate-900 dark:text-white mb-4 flex items-center space-x-2">
+                            <i class="fa-solid fa-triangle-exclamation text-amber-500"></i>
+                            <span>Contas & Dívidas Pendentes</span>
+                        </h3>
+                        <div id="dash-pendencias-list" class="space-y-3 max-h-48 overflow-y-auto pr-1">
+                            <!-- Preenchido via JS -->
+                        </div>
+                    </div>
+                    <button onclick="switchTab('dividas')" class="mt-4 w-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 py-2 rounded-xl text-xs font-semibold transition">Gerenciar Contas e Dívidas</button>
+                </div>
+            </div>
+
+            <!-- Gráfico e Últimas Movimentações -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 lg:col-span-1">
+                    <h3 class="font-bold text-slate-900 dark:text-white mb-4">Despesas por Categoria</h3>
+                    <div class="relative h-64 flex items-center justify-center">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+                <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 lg:col-span-2">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-bold text-slate-900 dark:text-white">Últimas Movimentações do Período</h3>
+                        <button onclick="switchTab('lancamentos')" class="text-xs text-brand-600 dark:text-brand-400 font-semibold hover:underline">Ver todas</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-xs uppercase">
+                                <tr>
+                                    <th class="p-3 rounded-l-lg">Data</th>
+                                    <th class="p-3">Descrição</th>
+                                    <th class="p-3">Categoria</th>
+                                    <th class="p-3">Conta</th>
+                                    <th class="p-3 rounded-r-lg text-right">Valor</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dash-recent-table" class="divide-y divide-slate-100 dark:divide-slate-800">
+                                <!-- Preenchido via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. LANÇAMENTOS -->
+        <section id="tab-lancamentos" class="tab-content space-y-6">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Lançamentos Financeiros</h2>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">Registre receitas, despesas, transferências, reservas e resgates.</p>
+                </div>
+            </div>
+
+            <!-- Formulário de Lançamento -->
+            <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800">
+                <h3 id="form-title" class="font-bold text-slate-900 dark:text-white mb-4 flex items-center space-x-2">
+                    <i class="fa-solid fa-circle-plus text-brand-600"></i>
+                    <span>Novo Lançamento</span>
+                </h3>
+                <form id="transaction-form" onsubmit="handleFormSubmit(event)" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <input type="hidden" id="edit-index" value="">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Tipo de Movimentação</label>
+                        <select id="t-type" onchange="toggleFormFields()" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-sm focus:outline-none focus:border-brand-600 text-slate-900 dark:text-slate-100">
+                            <option value="despesa">Despesa</option>
+                            <option value="receita">Receita</option>
+                            <option value="transferencia">Transferência</option>
+                            <option value="reserva">Reserva (Guardar Dinheiro)</option>
+                            <option value="resgate">Resgate (Liberar Investimento)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Descrição</label>
+                        <input type="text" id="t-desc" required placeholder="Ex: Mercado, Salário, Celular..." class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-sm focus:outline-none focus:border-brand-600 text-slate-900 dark:text-slate-100">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Valor (R$)</label>
+                        <input type="number" step="0.01" id="t-value" required placeholder="0,00" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-sm focus:outline-none focus:border-brand-600 text-slate-900 dark:text-slate-100">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Data</label>
+                        <input type="date" id="t-date" required class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-sm focus:outline-none focus:border-brand-600 text-slate-900 dark:text-slate-100">
+                    </div>
+                    <div id="field-categoria">
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Categoria</label>
+                        <select id="t-category" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-sm focus:outline-none focus:border-brand-600 text-slate-900 dark:text-slate-100">
+                            <option value="Alimentação">Alimentação</option>
+                            <option value="Salário">Salário</option>
+                            <option value="Contas e Boletos">Contas e Boletos</option>
+                            <option value="Transporte">Transporte</option>
+                            <option value="Lazer e Presentes">Lazer e Presentes</option>
+                            <option value="Saúde e Suplementos">Saúde e Suplementos</option>
+                            <option value="Outros">Outros</option>
+                        </select>
+                    </div>
+                    <div id="field-parcelas">
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Parcelar em (Vezes)</label>
+                        <select id="t-installments" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-sm focus:outline-none focus:border-brand-600 text-slate-900 dark:text-slate-100">
+                            <option value="1">À vista / Sem parcelar</option>
+                            <option value="2">2x parcelado</option>
+                            <option value="3">3x parcelado</option>
+                            <option value="4">4x parcelado</option>
+                            <option value="5">5x parcelado</option>
+                            <option value="6">6x parcelado</option>
+                            <option value="10">10x parcelado</option>
+                            <option value="12">12x parcelado</option>
+                        </select>
+                    </div>
+                    <div id="field-conta-origem">
+                        <label id="label-conta-origem" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Conta / Origem</label>
+                        <select id="t-account" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-sm focus:outline-none focus:border-brand-600 text-slate-900 dark:text-slate-100">
+                            <!-- Preenchido via JS -->
+                        </select>
+                    </div>
+                    <div id="field-conta-destino" class="hidden">
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Conta de Destino</label>
+                        <select id="t-destination" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-sm focus:outline-none focus:border-brand-600 text-slate-900 dark:text-slate-100">
+                            <!-- Preenchido via JS -->
+                        </select>
+                    </div>
+                    <div class="sm:col-span-2 lg:col-span-3">
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Observações (Opcional)</label>
+                        <input type="text" id="t-obs" placeholder="Detalhes adicionais..." class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-sm focus:outline-none focus:border-brand-600 text-slate-900 dark:text-slate-100">
+                    </div>
+                    <div class="sm:col-span-2 lg:col-span-3 flex justify-end space-x-3">
+                        <button type="button" id="cancel-edit-btn" onclick="resetTransactionForm()" class="hidden bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-300 dark:hover:bg-slate-700 transition">Cancelar</button>
+                        <button type="submit" class="bg-brand-600 hover:bg-brand-700 text-white px-6 py-2.5 rounded-xl text-sm font-semibold shadow-md transition">Salvar Lançamento</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Tabela de Lançamentos -->
+            <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+                    <h3 class="font-bold text-slate-900 dark:text-white">Histórico de Movimentações</h3>
+                    <div class="flex items-center space-x-2 w-full sm:w-auto">
+                        <input type="text" id="search-trans" onkeyup="renderLancamentosTable()" placeholder="Pesquisar..." class="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-600 w-full sm:w-64 text-slate-900 dark:text-slate-100">
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-xs uppercase">
+                            <tr>
+                                <th class="p-3 rounded-l-lg">Data</th>
+                                <th class="p-3">Tipo</th>
+                                <th class="p-3">Descrição</th>
+                                <th class="p-3">Categoria</th>
+                                <th class="p-3">Conta</th>
+                                <th class="p-3 text-right">Valor</th>
+                                <th class="p-3 rounded-r-lg text-center">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="full-trans-table" class="divide-y divide-slate-100 dark:divide-slate-800">
+                            <!-- Preenchido via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. MINHAS CONTAS -->
+        <section id="tab-contas" class="tab-content space-y-6">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Minhas Contas e Saldos</h2>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">Bancos Inter, Mercado Pago e Nubank • Ref: 04/11/2026</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="accounts-grid">
+                <!-- Preenchido via JS -->
+            </div>
+
+            <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800">
+                <h3 class="font-bold text-slate-900 dark:text-white mb-4">Regras de Separação de Patrimônio</h3>
+                <ul class="space-y-2 text-sm text-slate-600 dark:text-slate-300 list-disc list-inside">
+                    <li><strong class="text-slate-800 dark:text-white">Dinheiro Disponível (R$ 240,94):</strong> Saldo livre nas contas correntes e cofrinhos normais (Inter Outra Caixinha, Inter Conta Corrente, Mercado Pago Conta e Cofrinho, Nubank).</li>
+                    <li><strong class="text-slate-800 dark:text-white">Dinheiro Reservado (R$ 163,66):</strong> Reservado exclusivamente para o pagamento do celular (vencimento 05/11/2026).</li>
+                    <li><strong class="text-slate-800 dark:text-white">Aguardando Resgate (R$ 347,14):</strong> Investimentos previstos para resgate em 09/11/2026 (R$ 263,16) e 03/12/2026 (R$ 83,98). Já fazem parte do patrimônio e não duplicam ao serem liberados.</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 4. CONTAS E DÍVIDAS -->
+        <section id="tab-dividas" class="tab-content space-y-6">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Contas a Pagar e Dívidas</h2>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">Controle de compromissos financeiros e empréstimos pessoais com pagamento direto de parcelas.</p>
+                </div>
+                <button onclick="openAddDebtModal()" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2.5 rounded-xl font-medium shadow-md transition flex items-center space-x-2">
+                    <i class="fa-solid fa-plus"></i><span>Adicionar Conta/Dívida</span>
+                </button>
+            </div>
+
+            <!-- CARDS DE RESUMO DE DÍVIDAS (SOMA TOTAL AUTOMÁTICA) -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800">
+                    <p class="text-xs font-semibold text-rose-600 dark:text-rose-400 uppercase tracking-wider">Total em Contas & Boletos</p>
+                    <h3 id="total-bills-val" class="text-2xl font-bold text-rose-600 dark:text-rose-400 mt-1">R$ 0,00</h3>
+                    <p id="total-bills-count" class="text-xs text-slate-400 mt-1">0 pendentes</p>
+                </div>
+                <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800">
+                    <p class="text-xs font-semibold text-amber-600 dark:text-amber-400 uppercase tracking-wider">Total em Dívidas Pessoais</p>
+                    <h3 id="total-debts-val" class="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">R$ 0,00</h3>
+                    <p id="total-debts-count" class="text-xs text-slate-400 mt-1">0 pendentes</p>
+                </div>
+                <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800">
+                    <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Soma Total Geral Pendente</p>
+                    <h3 id="total-all-debts-val" class="text-2xl font-bold text-slate-900 dark:text-white mt-1">R$ 0,00</h3>
+                    <p class="text-xs text-slate-400 mt-1">Valor total a ser pago</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Contas e Boletos -->
+                <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800">
+                    <h3 class="font-bold text-slate-900 dark:text-white mb-4 flex items-center space-x-2">
+                        <i class="fa-solid fa-file-invoice text-brand-600"></i>
+                        <span>Contas, Boletos e Parcelas</span>
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-xs uppercase">
+                                <tr>
+                                    <th class="p-3 rounded-l-lg">Descrição</th>
+                                    <th class="p-3">Parcelas</th>
+                                    <th class="p-3 text-right">Valor (Parc./Total)</th>
+                                    <th class="p-3 text-center">Status</th>
+                                    <th class="p-3 rounded-r-lg text-center">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bills-table" class="divide-y divide-slate-100 dark:divide-slate-800">
+                                <!-- Preenchido via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Dívidas Pessoais -->
+                <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800">
+                    <h3 class="font-bold text-slate-900 dark:text-white mb-4 flex items-center space-x-2">
+                        <i class="fa-solid fa-handshake-angle text-brand-600"></i>
+                        <span>Dívidas Pessoais</span>
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-xs uppercase">
+                                <tr>
+                                    <th class="p-3 rounded-l-lg">Credor</th>
+                                    <th class="p-3">Parcelas</th>
+                                    <th class="p-3 text-right">Valor (Parc./Total)</th>
+                                    <th class="p-3 text-center">Status</th>
+                                    <th class="p-3 rounded-r-lg text-center">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="debts-table" class="divide-y divide-slate-100 dark:divide-slate-800">
+                                <!-- Preenchido via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. METAS -->
+        <section id="tab-metas" class="tab-content space-y-6">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Metas Pessoais</h2>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">Planejamento para datas especiais e objetivos (não entram como despesas imediatas).</p>
+                </div>
+                <button onclick="openAddGoalModal()" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2.5 rounded-xl font-medium shadow-md transition flex items-center space-x-2">
+                    <i class="fa-solid fa-plus"></i><span>Nova Meta</span>
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="goals-grid">
+                <!-- Preenchido via JS -->
+            </div>
+        </section>
+
+        <!-- 6. SIMULADOR R15 -->
+        <section id="tab-simulador" class="tab-content space-y-6">
+            <div>
+                <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Simulador: Yamaha R15 X-Black</h2>
+                <p class="text-sm text-slate-500 dark:text-slate-400">Compare Compra à Vista, Consórcio e Financiamento com valores editáveis.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Inputs do Simulador -->
+                <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 space-y-4">
+                    <h3 class="font-bold text-slate-900 dark:text-white">Parâmetros da Moto</h3>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Preço Estimado da Moto (R$)</label>
+                        <input type="number" id="sim-preco" value="18000" oninput="runSimulador()" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-sm focus:outline-none focus:border-brand-600 text-slate-900 dark:text-slate-100">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Entrada Disponível (R$)</label>
+                        <input type="number" id="sim-entrada" value="5000" oninput="runSimulador()" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-sm focus:outline-none focus:border-brand-600 text-slate-900 dark:text-slate-100">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Prazo / Parcelas (Meses)</label>
+                        <input type="number" id="sim-meses" value="24" oninput="runSimulador()" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-sm focus:outline-none focus:border-brand-600 text-slate-900 dark:text-slate-100">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Taxa de Juros Financiamento (% a.m.)</label>
+                        <input type="number" step="0.1" id="sim-juros" value="1.8" oninput="runSimulador()" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-sm focus:outline-none focus:border-brand-600 text-slate-900 dark:text-slate-100">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Taxa Administrativa Consórcio (%)</label>
+                        <input type="number" step="0.1" id="sim-cons-taxa" value="15" oninput="runSimulador()" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-sm focus:outline-none focus:border-brand-600 text-slate-900 dark:text-slate-100">
+                    </div>
+                </div>
+
+                <!-- Resultados Comparativos -->
+                <div class="lg:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- À Vista -->
+                    <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col justify-between">
+                        <div>
+                            <div class="bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 p-3 rounded-xl w-fit mb-3"><i class="fa-solid fa-money-bill-wave text-lg"></i></div>
+                            <h4 class="font-bold text-slate-900 dark:text-white text-lg">Compra à Vista</h4>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">Sem juros, economia direta.</p>
+                            <div class="space-y-2 text-sm">
+                                <p class="flex justify-between"><span class="text-slate-500 dark:text-slate-400">Valor Moto:</span> <span id="res-avista-valor" class="font-semibold text-slate-800 dark:text-slate-200">R$ 0,00</span></p>
+                                <p class="flex justify-between"><span class="text-slate-500 dark:text-slate-400">Negociação:</span> <span class="font-semibold text-emerald-600 dark:text-emerald-400">Ideal</span></p>
+                            </div>
+                        </div>
+                        <div class="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800">
+                            <p class="text-xs text-slate-400">Custo Final</p>
+                            <p id="res-avista-total" class="text-xl font-bold text-emerald-600 dark:text-emerald-400">R$ 0,00</p>
+                        </div>
+                    </div>
+
+                    <!-- Consórcio -->
+                    <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col justify-between">
+                        <div>
+                            <div class="bg-brand-50 dark:bg-brand-950/50 text-brand-600 dark:text-brand-400 p-3 rounded-xl w-fit mb-3"><i class="fa-solid fa-file-contract text-lg"></i></div>
+                            <h4 class="font-bold text-slate-900 dark:text-white text-lg">Consórcio</h4>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">Taxa administrativa inclusa.</p>
+                            <div class="space-y-2 text-sm">
+                                <p class="flex justify-between"><span class="text-slate-500 dark:text-slate-400">Parcela Mensal:</span> <span id="res-cons-parcela" class="font-semibold text-slate-800 dark:text-slate-200">R$ 0,00</span></p>
+                                <p class="flex justify-between"><span class="text-slate-500 dark:text-slate-400">Taxa Total:</span> <span id="res-cons-taxa-val" class="font-semibold text-slate-800 dark:text-slate-200">R$ 0,00</span></p>
+                            </div>
+                        </div>
+                        <div class="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800">
+                            <p class="text-xs text-slate-400">Custo Final</p>
+                            <p id="res-cons-total" class="text-xl font-bold text-brand-600 dark:text-brand-400">R$ 0,00</p>
+                        </div>
+                    </div>
+
+                    <!-- Financiamento -->
+                    <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col justify-between">
+                        <div>
+                            <div class="bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 p-3 rounded-xl w-fit mb-3"><i class="fa-solid fa-percent text-lg"></i></div>
+                            <h4 class="font-bold text-slate-900 dark:text-white text-lg">Financiamento</h4>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">Com juros compostos mensais.</p>
+                            <div class="space-y-2 text-sm">
+                                <p class="flex justify-between"><span class="text-slate-500 dark:text-slate-400">Parcela Mensal:</span> <span id="res-fin-parcela" class="font-semibold text-slate-800 dark:text-slate-200">R$ 0,00</span></p>
+                                <p class="flex justify-between"><span class="text-slate-500 dark:text-slate-400">Total de Juros:</span> <span id="res-fin-juros" class="font-semibold text-rose-600 dark:text-rose-400">R$ 0,00</span></p>
+                            </div>
+                        </div>
+                        <div class="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800">
+                            <p class="text-xs text-slate-400">Custo Final</p>
+                            <p id="res-fin-total" class="text-xl font-bold text-rose-600 dark:text-rose-400">R$ 0,00</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 7. CONFIGURAÇÕES -->
+        <section id="tab-config" class="tab-content space-y-6">
+            <div>
+                <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Configurações e Dados</h2>
+                <p class="text-sm text-slate-500 dark:text-slate-400">Faça backup, exporte dados ou altere sua senha de acesso.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Alterar PIN de Segurança -->
+                <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 space-y-4">
+                    <h3 class="font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+                        <i class="fa-solid fa-shield-halved text-brand-600"></i>
+                        <span>Segurança do App</span>
+                    </h3>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Novo PIN de 4 dígitos</label>
+                        <div class="flex space-x-2">
+                            <input type="password" id="new-pin-input" maxlength="4" placeholder="••••" class="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-sm w-32 focus:outline-none focus:border-brand-600 text-slate-900 dark:text-slate-100 text-center font-bold">
+                            <button onclick="changePin()" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition">Salvar PIN</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 space-y-4">
+                    <h3 class="font-bold text-slate-900 dark:text-white">Backup e Exportação</h3>
+                    <div class="flex flex-wrap gap-3">
+                        <button onclick="exportJSON()" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-md transition flex items-center space-x-2">
+                            <i class="fa-solid fa-download"></i><span>Exportar Backup (JSON)</span>
+                        </button>
+                        <button onclick="exportCSV()" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-md transition flex items-center space-x-2">
+                            <i class="fa-solid fa-file-csv"></i><span>Exportar CSV</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 space-y-4">
+                    <h3 class="font-bold text-slate-900 dark:text-white">Restaurar Backup</h3>
+                    <input type="file" id="import-file" accept=".json" onchange="importJSON(event)" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2 text-sm text-slate-500 dark:text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100">
+                </div>
+
+                <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 space-y-4 md:col-span-2">
+                    <h3 class="font-bold text-rose-600">Zona de Perigo</h3>
+                    <p class="text-sm text-slate-600 dark:text-slate-300">Restaurar os dados iniciais do sistema conforme as especificações de Edyson em 04/11/2026.</p>
+                    <button onclick="resetToDefaultData()" class="bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 text-rose-600 px-4 py-2.5 rounded-xl text-sm font-semibold transition border border-rose-200 dark:border-rose-900">Restaurar Dados Iniciais Padrão</button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MODAL CONFIRMAR PAGAMENTO DE PARCELA (DEONDE SAIU O DINHEIRO) -->
+    <div id="modal-pay-installment" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-xl w-full max-w-md space-y-4 border border-slate-100 dark:border-slate-800">
+            <div class="flex justify-between items-center">
+                <h3 class="font-bold text-lg text-slate-900 dark:text-white">Pagar Parcela</h3>
+                <button onclick="closePayInstallmentModal()" class="text-slate-400 hover:text-slate-600 text-lg font-bold">&times;</button>
+            </div>
+            <div class="p-3 bg-brand-50 dark:bg-brand-950/50 rounded-xl space-y-1">
+                <p id="pay-modal-item-name" class="font-bold text-brand-900 dark:text-brand-100 text-sm"></p>
+                <p id="pay-modal-item-val" class="text-xs text-brand-700 dark:text-brand-300"></p>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">De qual conta saiu o dinheiro?</label>
+                <select id="pay-modal-account" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-sm text-slate-900 dark:text-slate-100">
+                    <!-- Preenchido via JS -->
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Data do Pagamento</label>
+                <input type="date" id="pay-modal-date" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-sm text-slate-900 dark:text-slate-100">
+            </div>
+            <div class="flex justify-end space-x-3 pt-2">
+                <button type="button" onclick="closePayInstallmentModal()" class="bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-4 py-2 rounded-xl text-sm font-semibold">Cancelar</button>
+                <button type="button" onclick="confirmPayInstallment()" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-xl text-sm font-semibold transition">Confirmar e Pagar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL ADICIONAR CONTA/DÍVIDA -->
+    <div id="modal-debt" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-xl w-full max-w-md space-y-4 border border-slate-100 dark:border-slate-800">
+            <div class="flex justify-between items-center">
+                <h3 class="font-bold text-lg text-slate-900 dark:text-white" id="debt-modal-title">Adicionar Conta ou Dívida</h3>
+                <button onclick="closeAddDebtModal()" class="text-slate-400 hover:text-slate-600 text-lg font-bold">&times;</button>
+            </div>
+            <form id="debt-form" onsubmit="saveDebtForm(event)" class="space-y-4">
+                <input type="hidden" id="debt-id">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Tipo</label>
+                    <select id="debt-type" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-sm text-slate-900 dark:text-slate-100">
+                        <option value="bill">Conta / Boleto / Parcela</option>
+                        <option value="debt">Dívida Pessoal</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Descrição / Nome</label>
+                    <input type="text" id="debt-desc" required placeholder="Ex: Terno, Irmão..." class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-sm text-slate-900 dark:text-slate-100">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Valor da Parcela (R$)</label>
+                    <input type="number" step="0.01" id="debt-value" required placeholder="0,00" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-sm text-slate-900 dark:text-slate-100">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Total de Parcelas</label>
+                        <input type="number" id="debt-total-installments" value="1" min="1" required class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-sm text-slate-900 dark:text-slate-100">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Parcelas já Pagas</label>
+                        <input type="number" id="debt-paid-installments" value="0" min="0" required class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-sm text-slate-900 dark:text-slate-100">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Vencimento / Previsão</label>
+                    <input type="text" id="debt-duedate" placeholder="Ex: 05/11/2026 ou Nov/2026" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-sm text-slate-900 dark:text-slate-100">
+                </div>
+                <div class="flex justify-end space-x-3 pt-2">
+                    <button type="button" onclick="closeAddDebtModal()" class="bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-4 py-2 rounded-xl text-sm font-semibold">Cancelar</button>
+                    <button type="submit" class="bg-brand-600 text-white px-4 py-2 rounded-xl text-sm font-semibold">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL ADICIONAR META -->
+    <div id="modal-goal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-xl w-full max-w-md space-y-4 border border-slate-100 dark:border-slate-800">
+            <div class="flex justify-between items-center">
+                <h3 class="font-bold text-lg text-slate-900 dark:text-white">Adicionar Meta Pessoal</h3>
+                <button onclick="closeAddGoalModal()" class="text-slate-400 hover:text-slate-600 text-lg font-bold">&times;</button>
+            </div>
+            <form id="goal-form" onsubmit="saveGoalForm(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Nome da Meta</label>
+                    <input type="text" id="goal-name" required placeholder="Ex: Aniversário Sarah, Creatina..." class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-sm text-slate-900 dark:text-slate-100">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Orçamento Estimado (R$)</label>
+                    <input type="number" step="0.01" id="goal-budget" placeholder="0,00 (Opcional)" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-sm text-slate-900 dark:text-slate-100">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Data / Prazo</label>
+                    <input type="text" id="goal-date" placeholder="Ex: 19/12/2026" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-sm text-slate-900 dark:text-slate-100">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Detalhes / Observações</label>
+                    <input type="text" id="goal-notes" placeholder="Ex: Alianças, frete, promoção 11.11..." class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-sm text-slate-900 dark:text-slate-100">
+                </div>
+                <div class="flex justify-end space-x-3 pt-2">
+                    <button type="button" onclick="closeAddGoalModal()" class="bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-4 py-2 rounded-xl text-sm font-semibold">Cancelar</button>
+                    <button type="submit" class="bg-brand-600 text-white px-4 py-2 rounded-xl text-sm font-semibold">Salvar Meta</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // ESTADO GLOBAL DO SISTEMA (v4.1)
+        let db = {
+            pin: '1234',
+            accounts: [
+                { id: 'inter_cc', name: 'Banco Inter - Conta', balance: 2.68, type: 'Disponível' },
+                { id: 'inter_celular', name: 'Banco Inter - Caixinha Celular', balance: 163.66, type: 'Reservado' },
+                { id: 'inter_outra', name: 'Banco Inter - Outra Caixinha', balance: 120.61, type: 'Disponível' },
+                { id: 'inter_resgate1', name: 'Banco Inter - Resgate (09/11/2026)', balance: 263.16, type: 'Aguardando Resgate' },
+                { id: 'inter_resgate2', name: 'Banco Inter - Resgate (03/12/2026)', balance: 83.98, type: 'Aguardando Resgate' },
+                { id: 'mp_cc', name: 'Mercado Pago - Conta', balance: 19.86, type: 'Disponível' },
+                { id: 'mp_cofrinho', name: 'Mercado Pago - Cofrinho', balance: 97.79, type: 'Disponível' },
+                { id: 'nu_cc', name: 'Nubank - Conta', balance: 0.00, type: 'Disponível' }
+            ],
+            transactions: [],
+            bills: [
+                { id: 1, desc: 'Celular', value: 163.66, dueDate: '05/11/2026', totalInstallments: 1, paidInstallments: 0, type: 'bill' },
+                { id: 2, desc: 'Terno', value: 50.00, dueDate: 'Nov/Dez/Jan', totalInstallments: 3, paidInstallments: 0, type: 'bill' }
+            ],
+            debts: [
+                { id: 1, desc: 'Irmão', value: 50.00, dueDate: 'A definir', totalInstallments: 1, paidInstallments: 0, type: 'debt' },
+                { id: 2, desc: 'Padrinho', value: 50.00, dueDate: 'A definir', totalInstallments: 1, paidInstallments: 0, type: 'debt' }
+            ],
+            goals: [
+                { id: 1, name: 'Aniversário Sarah', budget: 180.00, date: '19/12/2026', notes: 'Alianças (promoção 11.11), frete, passeio e extra' },
+                { id: 2, name: 'Creatina', budget: 80.00, date: 'Em aberto', notes: 'Suplementação' },
+                { id: 3, name: 'Whey Protein', budget: 0, date: 'Em aberto', notes: 'Preço a definir' }
+            ]
+        };
+
+        let activePayModalData = null;
+        let categoryChartInstance = null;
+
+        // INICIALIZAÇÃO
+        function initApp() {
+            const saved = localStorage.getItem('financeiro_edyson_data_v4_1');
+            if (saved) {
+                try {
+                    db = JSON.parse(saved);
+                } catch(e) {
+                    console.error('Erro ao carregar localStorage', e);
+                }
+            } else {
+                // Tentar migrar da v4 antiga se existir
+                const savedV4 = localStorage.getItem('financeiro_edyson_data_v4');
+                if (savedV4) {
+                    try {
+                        const parsedV4 = JSON.parse(savedV4);
+                        db.accounts = parsedV4.accounts || db.accounts;
+                        db.transactions = parsedV4.transactions || [];
+                        db.bills = parsedV4.bills || db.bills;
+                        db.debts = parsedV4.debts || db.debts;
+                        db.goals = parsedV4.goals || db.goals;
+                        db.pin = parsedV4.pin || '1234';
+                    } catch(e) {}
+                }
+            }
+            
+            // Carregar Dark Mode
+            const savedTheme = localStorage.getItem('financeiro_edyson_theme');
+            if (savedTheme === 'dark') {
+                document.documentElement.classList.add('dark');
+                document.getElementById('dark-mode-icon').className = 'fa-solid fa-sun';
+                document.getElementById('dark-mode-text').innerText = 'Modo Claro';
+            }
+
+            renderAll();
+            document.getElementById('t-date').valueAsDate = new Date();
+        }
+
+        function unlockScreen() {
+            const input = document.getElementById('pin-input').value;
+            if (input === (db.pin || '1234')) {
+                document.getElementById('pin-screen').classList.add('hidden');
+                document.getElementById('pin-error').classList.add('hidden');
+            } else {
+                document.getElementById('pin-error').classList.remove('hidden');
+            }
+        }
+
+        function changePin() {
+            const newPin = document.getElementById('new-pin-input').value;
+            if (newPin.length === 4 && !isNaN(newPin)) {
+                db.pin = newPin;
+                saveData();
+                alert('PIN de segurança alterado com sucesso!');
+                document.getElementById('new-pin-input').value = '';
+            } else {
+                alert('O PIN deve conter exatamente 4 números.');
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem('financeiro_edyson_data_v4_1', JSON.stringify(db));
+        }
+
+        function resetToDefaultData() {
+            if (confirm('Deseja realmente restaurar os dados iniciais padrão?')) {
+                localStorage.removeItem('financeiro_edyson_data_v4_1');
+                localStorage.removeItem('financeiro_edyson_data_v4');
+                localStorage.removeItem('financeiro_edyson_data_v3');
+                location.reload();
+            }
+        }
+
+        // DARK MODE TOGGLE
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            const icon = document.getElementById('dark-mode-icon');
+            const text = document.getElementById('dark-mode-text');
+
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                localStorage.setItem('financeiro_edyson_theme', 'light');
+                icon.className = 'fa-solid fa-moon';
+                text.innerText = 'Modo Escuro';
+            } else {
+                html.classList.add('dark');
+                localStorage.setItem('financeiro_edyson_theme', 'dark');
+                icon.className = 'fa-solid fa-sun';
+                text.innerText = 'Modo Claro';
+            }
+        }
+
+        // NAVEGAÇÃO DE ABAS
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('aside nav button').forEach(el => {
+                el.classList.remove('bg-brand-600', 'text-white', 'shadow-md');
+                el.classList.add('text-slate-300', 'hover:bg-slate-800', 'hover:text-white');
+            });
+
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+            const btn = document.getElementById(`btn-${tabId}`);
+            if (btn) {
+                btn.classList.add('bg-brand-600', 'text-white', 'shadow-md');
+                btn.classList.remove('text-slate-300', 'hover:bg-slate-800', 'hover:text-white');
+            }
+            if (tabId === 'simulador') runSimulador();
+        }
+
+        // FORMULÁRIO DE LANÇAMENTOS
+        function toggleFormFields() {
+            const type = document.getElementById('t-type').value;
+            const fieldContaDestino = document.getElementById('field-conta-destino');
+            const fieldParcelas = document.getElementById('field-parcelas');
+            const labelContaOrigem = document.getElementById('label-conta-origem');
+
+            if (type === 'transferencia' || type === 'reserva' || type === 'resgate') {
+                fieldContaDestino.classList.remove('hidden');
+                fieldParcelas.classList.add('hidden');
+            } else if (type === 'despesa') {
+                fieldContaDestino.classList.add('hidden');
+                fieldParcelas.classList.remove('hidden');
+            } else {
+                fieldContaDestino.classList.add('hidden');
+                fieldParcelas.classList.add('hidden');
+            }
+
+            if (type === 'reserva') {
+                labelContaOrigem.innerText = 'Retirar do Dinheiro Disponível (Origem)';
+            } else if (type === 'resgate') {
+                labelContaOrigem.innerText = 'Conta de Origem (Aguardando Resgate)';
+            } else {
+                labelContaOrigem.innerText = 'Conta';
+            }
+        }
+
+        function populateAccountSelects() {
+            const selectOrigem = document.getElementById('t-account');
+            const selectDestino = document.getElementById('t-destination');
+            const selectPayModal = document.getElementById('pay-modal-account');
+
+            selectOrigem.innerHTML = '';
+            selectDestino.innerHTML = '';
+            selectPayModal.innerHTML = '';
+
+            db.accounts.forEach(acc => {
+                const opt1 = document.createElement('option');
+                opt1.value = acc.id;
+                opt1.textContent = `${acc.name} (R$ ${acc.balance.toFixed(2)})`;
+                selectOrigem.appendChild(opt1);
+
+                const opt2 = document.createElement('option');
+                opt2.value = acc.id;
+                opt2.textContent = `${acc.name}`;
+                selectDestino.appendChild(opt2);
+
+                const opt3 = document.createElement('option');
+                opt3.value = acc.id;
+                opt3.textContent = `${acc.name} (Saldo: R$ ${acc.balance.toFixed(2)})`;
+                selectPayModal.appendChild(opt3);
+            });
+        }
+
+        // RENDERIZAÇÃO GERAL
+        function renderAll() {
+            populateAccountSelects();
+            renderDashboard();
+            renderLancamentosTable();
+            renderContasGrid();
+            renderBillsAndDebts();
+            renderGoalsGrid();
+        }
+
+        // DASHBOARD
+        function renderDashboard() {
+            let totalPatrimonio = 0;
+            let totalDisponivel = 0;
+            let totalReservado = 0;
+            let totalResgate = 0;
+
+            db.accounts.forEach(acc => {
+                totalPatrimonio += acc.balance;
+                if (acc.type === 'Disponível') totalDisponivel += acc.balance;
+                else if (acc.type === 'Reservado') totalReservado += acc.balance;
+                else if (acc.type === 'Aguardando Resgate') totalResgate += acc.balance;
+            });
+
+            const selectedMonth = document.getElementById('global-month-filter').value;
+            let filteredTrans = db.transactions;
+            if (selectedMonth !== 'all') {
+                filteredTrans = db.transactions.filter(t => t.date && t.date.startsWith(selectedMonth));
+            }
+
+            let totalReceitas = 0;
+            let totalDespesas = 0;
+
+            filteredTrans.forEach(t => {
+                if (t.type === 'receita') totalReceitas += t.value;
+                if (t.type === 'despesa') totalDespesas += t.value;
+            });
+
+            const saldoMes = totalReceitas - totalDespesas;
+
+            document.getElementById('dash-patrimonio').innerText = formatMoney(totalPatrimonio);
+            document.getElementById('dash-disponivel').innerText = formatMoney(totalDisponivel);
+            document.getElementById('dash-reservado').innerText = formatMoney(totalReservado);
+            document.getElementById('dash-resgate').innerText = formatMoney(totalResgate);
+            document.getElementById('dash-receitas').innerText = formatMoney(totalReceitas);
+            document.getElementById('dash-despesas').innerText = formatMoney(totalDespesas);
+            document.getElementById('dash-saldo-mes').innerText = formatMoney(saldoMes);
+
+            const alertBox = document.getElementById('negative-alert');
+            if (totalDisponivel < 0 || saldoMes < 0) {
+                alertBox.classList.remove('hidden');
+            } else {
+                alertBox.classList.add('hidden');
+            }
+
+            let r15Saved = totalReservado;
+            let r15Target = 5000;
+            let r15Percent = Math.min(100, (r15Saved / r15Target) * 100);
+            document.getElementById('r15-progress-bar').style.width = `${r15Percent}%`;
+            document.getElementById('r15-current').innerText = `${formatMoney(r15Saved)} guardados`;
+            document.getElementById('r15-percent').innerText = `${r15Percent.toFixed(1)}% da Entrada (R$ 5.000)`;
+
+            const pendList = document.getElementById('dash-pendencias-list');
+            pendList.innerHTML = '';
+            
+            let pendingItems = [];
+            db.bills.forEach(b => {
+                const totalI = b.totalInstallments || 1;
+                const paidI = b.paidInstallments || 0;
+                if (paidI < totalI) {
+                    const rem = totalI - paidI;
+                    pendingItems.push({
+                        desc: `${b.desc} (${paidI}/${totalI} pagas)`,
+                        value: b.value * rem,
+                        dueDate: b.dueDate || 'Pendente'
+                    });
+                }
+            });
+            db.debts.forEach(d => {
+                const totalI = d.totalInstallments || 1;
+                const paidI = d.paidInstallments || 0;
+                if (paidI < totalI) {
+                    const rem = totalI - paidI;
+                    pendingItems.push({
+                        desc: `${d.desc} (${paidI}/${totalI} pagas)`,
+                        value: d.value * rem,
+                        dueDate: d.dueDate || 'A definir'
+                    });
+                }
+            });
+
+            if (pendingItems.length === 0) {
+                pendList.innerHTML = '<p class="text-xs text-slate-400">Nenhuma conta pendente no momento!</p>';
+            } else {
+                pendingItems.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'flex justify-between items-center text-xs p-2.5 bg-slate-50 dark:bg-slate-800 rounded-xl';
+                    div.innerHTML = `<div><span class="font-bold text-slate-800 dark:text-slate-200">${item.desc}</span><br><span class="text-slate-400">${item.dueDate}</span></div><span class="font-bold text-rose-600 dark:text-rose-400">${formatMoney(item.value)}</span>`;
+                    pendList.appendChild(div);
+                });
+            }
+
+            const dashTable = document.getElementById('dash-recent-table');
+            dashTable.innerHTML = '';
+            const recent = [...filteredTrans].reverse().slice(0, 5);
+            if (recent.length === 0) {
+                dashTable.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400 text-xs">Nenhum lançamento neste período.</td></tr>';
+            } else {
+                recent.forEach(t => {
+                    const accObj = db.accounts.find(a => a.id === t.account);
+                    const tr = document.createElement('tr');
+                    tr.className = 'hover:bg-slate-50/50 dark:hover:bg-slate-800/30';
+                    tr.innerHTML = `
+                        <td class="p-3 text-slate-600 dark:text-slate-400">${formatDate(t.date)}</td>
+                        <td class="p-3 font-medium text-slate-800 dark:text-slate-200">${t.desc}</td>
+                        <td class="p-3"><span class="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2.5 py-1 rounded-md text-xs">${t.category}</span></td>
+                        <td class="p-3 text-slate-500 dark:text-slate-400">${accObj ? accObj.name.split(' - ')[0] : '-'}</td>
+                        <td class="p-3 text-right font-bold ${t.type === 'receita' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}">${t.type === 'receita' ? '+' : '-'}${formatMoney(t.value)}</td>
+                    `;
+                    dashTable.appendChild(tr);
+                });
+            }
+
+            renderCategoryChart(filteredTrans);
+        }
+
+        function renderCategoryChart(transList) {
+            const ctx = document.getElementById('categoryChart').getContext('2d');
+            const catTotals = {};
+            transList.filter(t => t.type === 'despesa').forEach(t => {
+                catTotals[t.category] = (catTotals[t.category] || 0) + t.value;
+            });
+
+            const labels = Object.keys(catTotals);
+            const data = Object.values(catTotals);
+
+            if (categoryChartInstance) categoryChartInstance.destroy();
+
+            const isDark = document.documentElement.classList.contains('dark');
+
+            categoryChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels.length ? labels : ['Sem despesas'],
+                    datasets: [{
+                        data: data.length ? data : [1],
+                        backgroundColor: ['#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#3b82f6', '#64748b']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { 
+                            position: 'bottom', 
+                            labels: { boxWidth: 12, font: { size: 11 }, color: isDark ? '#cbd5e1' : '#475569' } 
+                        }
+                    }
+                }
+            });
+        }
+
+        // LANÇAMENTOS E PARCELAMENTOS AUTOMÁTICOS
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            const editIndex = document.getElementById('edit-index').value;
+            const type = document.getElementById('t-type').value;
+            const desc = document.getElementById('t-desc').value;
+            const value = parseFloat(document.getElementById('t-value').value);
+            const date = document.getElementById('t-date').value;
+            const category = document.getElementById('t-category').value;
+            const installments = parseInt(document.getElementById('t-installments').value) || 1;
+            const accountId = document.getElementById('t-account').value;
+            const destId = document.getElementById('t-destination').value;
+            const obs = document.getElementById('t-obs').value;
+
+            if (editIndex !== '') {
+                revertTransactionEffect(db.transactions[editIndex]);
+                db.transactions[editIndex] = { type, desc, value, date, category, account: accountId, destination: destId, obs };
+                applyTransactionEffect({ type, desc, value, date, category, account: accountId, destination: destId, obs });
+                document.getElementById('edit-index').value = '';
+                document.getElementById('form-title').innerHTML = '<i class="fa-solid fa-circle-plus text-brand-600"></i><span>Novo Lançamento</span>';
+                document.getElementById('cancel-edit-btn').classList.add('hidden');
+            } else {
+                if (type === 'despesa' && installments > 1) {
+                    const installmentVal = value / installments;
+                    let baseDate = new Date(date);
+                    for (let i = 1; i <= installments; i++) {
+                        let itemDateStr = baseDate.toISOString().split('T')[0];
+                        const itemDesc = `${desc} (${i}/${installments})`;
+                        
+                        db.transactions.push({ type: 'despesa', desc: itemDesc, value: installmentVal, date: itemDateStr, category, account: accountId, destination: destId, obs });
+                        applyTransactionEffect({ type: 'despesa', desc: itemDesc, value: installmentVal, date: itemDateStr, category, account: accountId, destination: destId, obs });
+                        
+                        baseDate.setMonth(baseDate.getMonth() + 1);
+                    }
+                } else {
+                    db.transactions.push({ type, desc, value, date, category, account: accountId, destination: destId, obs });
+                    applyTransactionEffect({ type, desc, value, date, category, account: accountId, destination: destId, obs });
+                }
+            }
+
+            saveData();
+            renderAll();
+            document.getElementById('transaction-form').reset();
+            document.getElementById('t-date').valueAsDate = new Date();
+            toggleFormFields();
+            alert('Lançamento salvo com sucesso!');
+        }
+
+        function applyTransactionEffect(t) {
+            const acc = db.accounts.find(a => a.id === t.account);
+            const dest = db.accounts.find(a => a.id === t.destination);
+
+            if (t.type === 'receita') {
+                if (acc) acc.balance += t.value;
+            } else if (t.type === 'despesa') {
+                if (acc) acc.balance -= t.value;
+            } else if (t.type === 'transferencia' || t.type === 'reserva' || t.type === 'resgate') {
+                if (acc) acc.balance -= t.value;
+                if (dest) dest.balance += t.value;
+            }
+        }
+
+        function revertTransactionEffect(t) {
+            const acc = db.accounts.find(a => a.id === t.account);
+            const dest = db.accounts.find(a => a.id === t.destination);
+
+            if (t.type === 'receita') {
+                if (acc) acc.balance -= t.value;
+            } else if (t.type === 'despesa') {
+                if (acc) acc.balance += t.value;
+            } else if (t.type === 'transferencia' || t.type === 'reserva' || t.type === 'resgate') {
+                if (acc) acc.balance += t.value;
+                if (dest) dest.balance -= t.value;
+            }
+        }
+
+        function deleteTransaction(index) {
+            if (confirm('Tem certeza que deseja excluir este lançamento? O saldo das contas será recalculado.')) {
+                revertTransactionEffect(db.transactions[index]);
+                db.transactions.splice(index, 1);
+                saveData();
+                renderAll();
+            }
+        }
+
+        function editTransaction(index) {
+            const t = db.transactions[index];
+            document.getElementById('edit-index').value = index;
+            document.getElementById('t-type').value = t.type;
+            toggleFormFields();
+            document.getElementById('t-desc').value = t.desc;
+            document.getElementById('t-value').value = t.value;
+            document.getElementById('t-date').value = t.date;
+            document.getElementById('t-category').value = t.category;
+            document.getElementById('t-account').value = t.account;
+            if (t.destination) document.getElementById('t-destination').value = t.destination;
+            document.getElementById('t-obs').value = t.obs || '';
+
+            document.getElementById('form-title').innerHTML = '<i class="fa-solid fa-pen-to-square text-brand-600"></i><span>Editar Lançamento</span>';
+            document.getElementById('cancel-edit-btn').classList.remove('hidden');
+            switchTab('lancamentos');
+        }
+
+        function resetTransactionForm() {
+            document.getElementById('transaction-form').reset();
+            document.getElementById('edit-index').value = '';
+            document.getElementById('form-title').innerHTML = '<i class="fa-solid fa-circle-plus text-brand-600"></i><span>Novo Lançamento</span>';
+            document.getElementById('cancel-edit-btn').classList.add('hidden');
+            document.getElementById('t-date').valueAsDate = new Date();
+            toggleFormFields();
+        }
+
+        function renderLancamentosTable() {
+            const tbody = document.getElementById('full-trans-table');
+            const search = document.getElementById('search-trans').value.toLowerCase();
+            tbody.innerHTML = '';
+
+            const filtered = db.transactions.map((t, idx) => ({ ...t, originalIndex: idx })).filter(t => 
+                t.desc.toLowerCase().includes(search) || t.category.toLowerCase().includes(search)
+            ).reverse();
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="p-4 text-center text-slate-400 text-sm">Nenhum lançamento encontrado.</td></tr>';
+                return;
+            }
+
+            filtered.forEach(t => {
+                const accObj = db.accounts.find(a => a.id === t.account);
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50/50 dark:hover:bg-slate-800/30';
+                tr.innerHTML = `
+                    <td class="p-3 text-slate-600 dark:text-slate-400">${formatDate(t.date)}</td>
+                    <td class="p-3"><span class="px-2 py-1 rounded-full text-xs font-semibold ${getTypeBadgeClass(t.type)}">${t.type.toUpperCase()}</span></td>
+                    <td class="p-3 font-medium text-slate-800 dark:text-slate-200">${t.desc}</td>
+                    <td class="p-3"><span class="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2.5 py-1 rounded-md text-xs">${t.category}</span></td>
+                    <td class="p-3 text-slate-500 dark:text-slate-400">${accObj ? accObj.name.split(' - ')[0] : '-'}</td>
+                    <td class="p-3 text-right font-bold ${t.type === 'receita' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}">${t.type === 'receita' ? '+' : '-'}${formatMoney(t.value)}</td>
+                    <td class="p-3 text-center space-x-2">
+                        <button onclick="editTransaction(${t.originalIndex})" class="text-slate-400 hover:text-brand-600 p-1"><i class="fa-solid fa-pen"></i></button>
+                        <button onclick="deleteTransaction(${t.originalIndex})" class="text-slate-400 hover:text-rose-600 p-1"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function getTypeBadgeClass(type) {
+            switch(type) {
+                case 'receita': return 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400';
+                case 'despesa': return 'bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400';
+                case 'transferencia': return 'bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400';
+                case 'reserva': return 'bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400';
+                case 'resgate': return 'bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400';
+                default: return 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300';
+            }
+        }
+
+        // MINHAS CONTAS GRID
+        function renderContasGrid() {
+            const grid = document.getElementById('accounts-grid');
+            grid.innerHTML = '';
+
+            db.accounts.forEach(acc => {
+                const card = document.createElement('div');
+                card.className = 'bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col justify-between';
+                card.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="bg-brand-50 dark:bg-brand-950/50 text-brand-600 dark:text-brand-400 p-3 rounded-xl"><i class="fa-solid fa-building-columns text-lg"></i></div>
+                            <span class="text-xs px-2.5 py-1 rounded-full font-semibold ${getAccountTypeBadge(acc.type)}">${acc.type}</span>
+                        </div>
+                        <h4 class="font-bold text-slate-900 dark:text-white text-base">${acc.name}</h4>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800">
+                        <p class="text-xs text-slate-400">Saldo Atual</p>
+                        <p class="text-xl font-bold text-slate-900 dark:text-white">${formatMoney(acc.balance)}</p>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function getAccountTypeBadge(type) {
+            switch(type) {
+                case 'Disponível': return 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300';
+                case 'Reservado': return 'bg-purple-50 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300';
+                case 'Aguardando Resgate': return 'bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300';
+                default: return 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300';
+            }
+        }
+
+        // CONTAS E DÍVIDAS (COM CONTROLE E SELEÇÃO DE ORIGEM DO DINHEIRO)
+        function renderBillsAndDebts() {
+            let totalBills = 0;
+            let pendingBillsCount = 0;
+            const billsTbody = document.getElementById('bills-table');
+            billsTbody.innerHTML = '';
+            
+            db.bills.forEach((b, idx) => {
+                const totalI = b.totalInstallments || 1;
+                const paidI = b.paidInstallments || 0;
+                const isFullyPaid = paidI >= totalI;
+                const remainingInstallments = Math.max(0, totalI - paidI);
+                const totalPendingVal = b.value * remainingInstallments;
+
+                if (!isFullyPaid) {
+                    totalBills += totalPendingVal;
+                    pendingBillsCount++;
+                }
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50/50 dark:hover:bg-slate-800/30';
+                tr.innerHTML = `
+                    <td class="p-3">
+                        <span class="font-medium text-slate-800 dark:text-slate-200">${b.desc}</span>
+                        <div class="text-xs text-slate-400">Venc: ${b.dueDate || 'Pendente'}</div>
+                    </td>
+                    <td class="p-3">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-xs font-semibold px-2 py-0.5 rounded bg-brand-50 dark:bg-brand-950/50 text-brand-700 dark:text-brand-300">${paidI} / ${totalI} pagas</span>
+                        </div>
+                    </td>
+                    <td class="p-3 text-right">
+                        <div class="font-bold text-slate-900 dark:text-white">${formatMoney(totalPendingVal)}</div>
+                        <div class="text-xs text-slate-400">Parc: ${formatMoney(b.value)}</div>
+                    </td>
+                    <td class="p-3 text-center">
+                        <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${isFullyPaid ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400' : 'bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400'}">
+                            ${isFullyPaid ? 'Quitado' : 'Pendente'}
+                        </span>
+                    </td>
+                    <td class="p-3 text-center space-x-1">
+                        <button onclick="openPayInstallmentModal('bill', ${idx})" title="Pagar Parcela e Descontar da Conta" class="text-xs bg-brand-600 hover:bg-brand-700 text-white px-2 py-1 rounded-md font-medium transition" ${isFullyPaid ? 'disabled opacity-50' : ''}>
+                            <i class="fa-solid fa-check mr-1"></i>+1 Parc
+                        </button>
+                        <button onclick="decrementBillInstallment(${idx})" title="Desfazer 1 parcela" class="text-xs bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 px-2 py-1 rounded-md font-medium transition" ${paidI === 0 ? 'disabled opacity-50' : ''}>
+                            -1
+                        </button>
+                        <button onclick="deleteBill(${idx})" class="text-slate-400 hover:text-rose-600 p-1"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                `;
+                billsTbody.appendChild(tr);
+            });
+
+            let totalDebts = 0;
+            let pendingDebtsCount = 0;
+            const debtsTbody = document.getElementById('debts-table');
+            debtsTbody.innerHTML = '';
+
+            db.debts.forEach((d, idx) => {
+                const totalI = d.totalInstallments || 1;
+                const paidI = d.paidInstallments || 0;
+                const isFullyPaid = paidI >= totalI;
+                const remainingInstallments = Math.max(0, totalI - paidI);
+                const totalPendingVal = d.value * remainingInstallments;
+
+                if (!isFullyPaid) {
+                    totalDebts += totalPendingVal;
+                    pendingDebtsCount++;
+                }
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50/50 dark:hover:bg-slate-800/30';
+                tr.innerHTML = `
+                    <td class="p-3">
+                        <span class="font-medium text-slate-800 dark:text-slate-200">${d.desc}</span>
+                        <div class="text-xs text-slate-400">Previsão: ${d.dueDate || 'A definir'}</div>
+                    </td>
+                    <td class="p-3">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-xs font-semibold px-2 py-0.5 rounded bg-brand-50 dark:bg-brand-950/50 text-brand-700 dark:text-brand-300">${paidI} / ${totalI} pagas</span>
+                        </div>
+                    </td>
+                    <td class="p-3 text-right">
+                        <div class="font-bold text-slate-900 dark:text-white">${formatMoney(totalPendingVal)}</div>
+                        <div class="text-xs text-slate-400">Parc: ${formatMoney(d.value)}</div>
+                    </td>
+                    <td class="p-3 text-center">
+                        <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${isFullyPaid ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400' : 'bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400'}">
+                            ${isFullyPaid ? 'Quitado' : 'Pendente'}
+                        </span>
+                    </td>
+                    <td class="p-3 text-center space-x-1">
+                        <button onclick="openPayInstallmentModal('debt', ${idx})" title="Pagar Parcela e Descontar da Conta" class="text-xs bg-brand-600 hover:bg-brand-700 text-white px-2 py-1 rounded-md font-medium transition" ${isFullyPaid ? 'disabled opacity-50' : ''}>
+                            <i class="fa-solid fa-check mr-1"></i>+1 Parc
+                        </button>
+                        <button onclick="decrementDebtInstallment(${idx})" title="Desfazer 1 parcela" class="text-xs bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 px-2 py-1 rounded-md font-medium transition" ${paidI === 0 ? 'disabled opacity-50' : ''}>
+                            -1
+                        </button>
+                        <button onclick="deleteDebt(${idx})" class="text-slate-400 hover:text-rose-600 p-1"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                `;
+                debtsTbody.appendChild(tr);
+            });
+
+            // ATUALIZAR SOMAS NOS CARDS SUPERIORES
+            document.getElementById('total-bills-val').innerText = formatMoney(totalBills);
+            document.getElementById('total-bills-count').innerText = `${pendingBillsCount} conta(s) pendente(s)`;
+
+            document.getElementById('total-debts-val').innerText = formatMoney(totalDebts);
+            document.getElementById('total-debts-count').innerText = `${pendingDebtsCount} dívida(s) pendente(s)`;
+
+            document.getElementById('total-all-debts-val').innerText = formatMoney(totalBills + totalDebts);
+        }
+
+        // MODAL DE PAGAMENTO DE PARCELA
+        function openPayInstallmentModal(type, idx) {
+            const item = (type === 'bill') ? db.bills[idx] : db.debts[idx];
+            activePayModalData = { type, idx, item };
+
+            const nextNum = (item.paidInstallments || 0) + 1;
+            const totalNum = item.totalInstallments || 1;
+
+            document.getElementById('pay-modal-item-name').innerText = `Pagando Parcela ${nextNum}/${totalNum} de: ${item.desc}`;
+            document.getElementById('pay-modal-item-val').innerText = `Valor da Parcela: ${formatMoney(item.value)}`;
+            document.getElementById('pay-modal-date').valueAsDate = new Date();
+            
+            document.getElementById('modal-pay-installment').classList.remove('hidden');
+        }
+
+        function closePayInstallmentModal() {
+            document.getElementById('modal-pay-installment').classList.add('hidden');
+            activePayModalData = null;
+        }
+
+        function confirmPayInstallment() {
+            if (!activePayModalData) return;
+            const { type, idx, item } = activePayModalData;
+            const accountId = document.getElementById('pay-modal-account').value;
+            const payDate = document.getElementById('pay-modal-date').value;
+
+            const nextNum = (item.paidInstallments || 0) + 1;
+            const totalNum = item.totalInstallments || 1;
+
+            // 1. Incrementar parcelas pagas
+            item.paidInstallments = nextNum;
+
+            // 2. Registrar Transação de Despesa
+            const transDesc = `Pag. Parcela (${nextNum}/${totalNum}): ${item.desc}`;
+            const transObj = {
+                type: 'despesa',
+                desc: transDesc,
+                value: item.value,
+                date: payDate || new Date().toISOString().split('T')[0],
+                category: 'Contas e Boletos',
+                account: accountId,
+                destination: '',
+                obs: 'Descontado via Pagamento de Parcela em Contas e Dívidas'
+            };
+
+            db.transactions.push(transObj);
+            applyTransactionEffect(transObj);
+
+            saveData();
+            closePayInstallmentModal();
+            renderAll();
+            alert(`Parcela ${nextNum}/${totalNum} paga com sucesso! O valor de ${formatMoney(item.value)} foi descontado da conta selecionada.`);
+        }
+
+        function decrementBillInstallment(idx) {
+            const b = db.bills[idx];
+            if ((b.paidInstallments || 0) > 0) {
+                b.paidInstallments -= 1;
+                saveData();
+                renderAll();
+            }
+        }
+
+        function deleteBill(idx) {
+            if (confirm('Excluir esta conta/boleto?')) {
+                db.bills.splice(idx, 1);
+                saveData();
+                renderAll();
+            }
+        }
+
+        function decrementDebtInstallment(idx) {
+            const d = db.debts[idx];
+            if ((d.paidInstallments || 0) > 0) {
+                d.paidInstallments -= 1;
+                saveData();
+                renderAll();
+            }
+        }
+
+        function deleteDebt(idx) {
+            if (confirm('Excluir esta dívida pessoal?')) {
+                db.debts.splice(idx, 1);
+                saveData();
+                renderAll();
+            }
+        }
+
+        function openAddDebtModal() {
+            document.getElementById('debt-form').reset();
+            document.getElementById('debt-total-installments').value = 1;
+            document.getElementById('debt-paid-installments').value = 0;
+            document.getElementById('modal-debt').classList.remove('hidden');
+        }
+
+        function closeAddDebtModal() {
+            document.getElementById('modal-debt').classList.add('hidden');
+        }
+
+        function saveDebtForm(e) {
+            e.preventDefault();
+            const type = document.getElementById('debt-type').value;
+            const desc = document.getElementById('debt-desc').value;
+            const value = parseFloat(document.getElementById('debt-value').value);
+            const totalInstallments = parseInt(document.getElementById('debt-total-installments').value) || 1;
+            const paidInstallments = parseInt(document.getElementById('debt-paid-installments').value) || 0;
+            const dueDate = document.getElementById('debt-duedate').value;
+
+            if (type === 'bill') {
+                db.bills.push({ id: Date.now(), desc, value, dueDate, totalInstallments, paidInstallments, type: 'bill' });
+            } else {
+                db.debts.push({ id: Date.now(), desc, value, dueDate, totalInstallments, paidInstallments, type: 'debt' });
+            }
+
+            saveData();
+            closeAddDebtModal();
+            renderAll();
+        }
+
+        // METAS PESSOAIS
+        function renderGoalsGrid() {
+            const grid = document.getElementById('goals-grid');
+            grid.innerHTML = '';
+            db.goals.forEach((g, idx) => {
+                const card = document.createElement('div');
+                card.className = 'bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col justify-between';
+                card.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="bg-brand-50 dark:bg-brand-950/50 text-brand-600 dark:text-brand-400 p-3 rounded-xl"><i class="fa-solid fa-bullseye text-lg"></i></div>
+                            <span class="text-xs bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-2.5 py-1 rounded-full font-medium">${g.date || 'Em aberto'}</span>
+                        </div>
+                        <h4 class="font-bold text-slate-900 dark:text-white text-base mb-1">${g.name}</h4>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">${g.notes || 'Sem observações'}</p>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                        <div>
+                            <p class="text-xs text-slate-400">Orçamento</p>
+                            <p class="text-lg font-bold text-slate-900 dark:text-white">${g.budget ? formatMoney(g.budget) : 'A definir'}</p>
+                        </div>
+                        <button onclick="deleteGoal(${idx})" class="text-slate-400 hover:text-rose-600"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function openAddGoalModal() {
+            document.getElementById('goal-form').reset();
+            document.getElementById('modal-goal').classList.remove('hidden');
+        }
+
+        function closeAddGoalModal() {
+            document.getElementById('modal-goal').classList.add('hidden');
+        }
+
+        function saveGoalForm(e) {
+            e.preventDefault();
+            const name = document.getElementById('goal-name').value;
+            const budget = parseFloat(document.getElementById('goal-budget').value) || 0;
+            const date = document.getElementById('goal-date').value;
+            const notes = document.getElementById('goal-notes').value;
+
+            db.goals.push({ id: Date.now(), name, budget, date, notes });
+            saveData();
+            closeAddGoalModal();
+            renderAll();
+        }
+
+        function deleteGoal(idx) {
+            if (confirm('Excluir esta meta?')) {
+                db.goals.splice(idx, 1);
+                saveData();
+                renderAll();
+            }
+        }
+
+        // SIMULADOR R15
+        function runSimulador() {
+            const preco = parseFloat(document.getElementById('sim-preco').value) || 0;
+            const entrada = parseFloat(document.getElementById('sim-entrada').value) || 0;
+            const meses = parseInt(document.getElementById('sim-meses').value) || 1;
+            const jurosMes = (parseFloat(document.getElementById('sim-juros').value) || 0) / 100;
+            const consTaxa = (parseFloat(document.getElementById('sim-cons-taxa').value) || 0) / 100;
+
+            document.getElementById('res-avista-valor').innerText = formatMoney(preco);
+            document.getElementById('res-avista-total').innerText = formatMoney(preco);
+
+            const valorConsorcio = preco * (1 + consTaxa);
+            const parcelaConsorcio = valorConsorcio / meses;
+            document.getElementById('res-cons-parcela').innerText = formatMoney(parcelaConsorcio);
+            document.getElementById('res-cons-taxa-val').innerText = formatMoney(preco * consTaxa);
+            document.getElementById('res-cons-total').innerText = formatMoney(valorConsorcio);
+
+            const valorFinanciar = Math.max(0, preco - entrada);
+            let parcelaFinanc = 0;
+            let totalFinanc = entrada;
+            if (jurosMes > 0) {
+                parcelaFinanc = valorFinanciar * (jurosMes * Math.pow(1 + jurosMes, meses)) / (Math.pow(1 + jurosMes, meses) - 1);
+                totalFinanc = entrada + (parcelaFinanc * meses);
+            } else {
+                parcelaFinanc = valorFinanciar / meses;
+                totalFinanc = preco;
+            }
+            const totalJuros = Math.max(0, totalFinanc - preco);
+
+            document.getElementById('res-fin-parcela').innerText = formatMoney(parcelaFinanc);
+            document.getElementById('res-fin-juros').innerText = formatMoney(totalJuros);
+            document.getElementById('res-fin-total').innerText = formatMoney(totalFinanc);
+        }
+
+        // EXPORTAR / IMPORTAR BACKUP & CSV
+        function exportJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db, null, 2));
+            const dlAnchor = document.createElement('a');
+            dlAnchor.setAttribute("href", dataStr);
+            dlAnchor.setAttribute("download", "financeiro_edyson_v4_1_backup.json");
+            document.body.appendChild(dlAnchor);
+            dlAnchor.click();
+            dlAnchor.remove();
+        }
+
+        function importJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    if (parsed.accounts && parsed.transactions) {
+                        db = parsed;
+                        saveData();
+                        renderAll();
+                        alert('Backup importado com sucesso!');
+                    } else {
+                        alert('Arquivo de backup inválido.');
+                    }
+                } catch(err) {
+                    alert('Erro ao ler o arquivo JSON.');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function exportCSV() {
+            let csv = 'Data,Tipo,Descricao,Categoria,Conta,Valor,Observacoes\n';
+            db.transactions.forEach(t => {
+                const accObj = db.accounts.find(a => a.id === t.account);
+                csv += `"${t.date}","${t.type}","${t.desc}","${t.category}","${accObj ? accObj.name : ''}",${t.value},"${t.obs || ''}"\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const dlAnchor = document.createElement('a');
+            dlAnchor.setAttribute("href", url);
+            dlAnchor.setAttribute("download", "movimentacoes_edyson_v4_1.csv");
+            document.body.appendChild(dlAnchor);
+            dlAnchor.click();
+            dlAnchor.remove();
+        }
+
+        // UTILITÁRIOS
+        function formatMoney(val) {
+            return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            const parts = dateStr.split('-');
+            if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+            return dateStr;
+        }
+
+        
+        // LÓGICA DE NAVEGAÇÃO MOBILE E BOTTOM BAR
+        function toggleMobileSidebar() {
+            const sidebar = document.getElementById('main-sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            if (sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        }
+
+        const originalSwitchTab = switchTab;
+        switchTab = function(tabId) {
+            originalSwitchTab(tabId);
+            
+            // Fechar menu lateral no telemóvel ao selecionar uma aba
+            const sidebar = document.getElementById('main-sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            if (sidebar && !sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.add('-translate-x-full');
+                if (overlay) overlay.classList.add('hidden');
+            }
+
+            // Atualizar botões da Bottom Bar no telemóvel
+            const bottomNavBtns = ['inicio', 'lancamentos', 'contas', 'dividas'];
+            bottomNavBtns.forEach(id => {
+                const btn = document.getElementById(`bnav-${id}`);
+                if (btn) {
+                    if (id === tabId) {
+                        btn.classList.remove('text-slate-400');
+                        btn.classList.add('text-brand-500');
+                    } else {
+                        btn.classList.remove('text-brand-500');
+                        btn.classList.add('text-slate-400');
+                    }
+                }
+            });
+        };
+
+        const originalToggleDarkMode = toggleDarkMode;
+        toggleDarkMode = function() {
+            originalToggleDarkMode();
+            const iconMobile = document.getElementById('dark-mode-icon-mobile');
+            if (iconMobile) {
+                if (document.documentElement.classList.contains('dark')) {
+                    iconMobile.className = 'fa-solid fa-sun';
+                } else {
+                    iconMobile.className = 'fa-solid fa-moon';
+                }
+            }
+        };
+
+        window.onload = initApp;
+    </script>
+</body>
+</html>
